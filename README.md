@@ -1,0 +1,522 @@
+[index.html](https://github.com/user-attachments/files/26867978/index.html)
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FlyAkeed — ROI Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  /* Brand palette — sampled directly from the official FlyAkeed logo */
+  --navy:#192071;         /* deep indigo — main brand bg */
+  --navy2:#252D85;        /* slightly lifted navy for layered surfaces */
+  --navy3:#2F3999;        /* interactive/hover state */
+  --navy-deep:#0F1550;    /* darkest for depth */
+  --pink:#FF5FA5;         /* hot magenta-pink accent */
+  --pink2:#FF7BB5;        /* lighter pink hover */
+  --pink-dark:#E8478D;    /* pink active/pressed */
+  --blue:#006FFF;         /* electric blue accent */
+  --blue2:#3389FF;        /* blue hover */
+  --blue-light:#E6F0FF;   /* blue tint bg */
+  --teal:#1D9E75;         /* success/positive green */
+  --teal2:#15B585;
+  --teal-light:#E8F7F2;
+
+  --bg:#F3F4FA;           /* warm off-white, indigo-tinted */
+  --surface:#FFFFFF;
+  --surface2:#F8F9FD;     /* secondary surface, indigo-tinted */
+  --border:#DDE0F0;       /* indigo-tinted border */
+  --border2:#C3C7E0;
+
+  --text:#192071;         /* body text matches logo navy */
+  --text2:#4A5288;        /* muted indigo */
+  --text3:#8A90B5;        /* subtle indigo-gray */
+
+  --r:12px;
+  --rs:8px;
+  --shadow:0 2px 8px rgba(25,32,113,.07),0 1px 2px rgba(25,32,113,.04);
+  --shadow-md:0 6px 24px rgba(25,32,113,.10),0 2px 6px rgba(25,32,113,.05);
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100vh;}
+
+/* ── HEADER ── */
+.hdr{background:var(--navy);position:relative;overflow:hidden;padding:0;}
+.hdr-deco{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.hdr-deco span{position:absolute;border-radius:50%;opacity:.12;filter:blur(2px);}
+.hdr-deco span:nth-child(1){width:440px;height:440px;background:var(--pink);top:-150px;right:-90px;opacity:.15;}
+.hdr-deco span:nth-child(2){width:320px;height:320px;background:var(--blue);bottom:-120px;left:5%;opacity:.18;}
+.hdr-deco span:nth-child(3){width:180px;height:180px;background:var(--pink2);top:30%;left:35%;opacity:.06;}
+.hdr-inner{max-width:980px;margin:0 auto;padding:32px 24px 0;position:relative;z-index:2;}
+
+/* Logo */
+.logo{display:flex;align-items:center;gap:10px;margin-bottom:36px;}
+.logo-text{font-family:'Manrope',sans-serif;font-size:22px;font-weight:800;color:#fff;letter-spacing:-.3px;}
+.logo-text em{color:var(--pink);font-style:normal;}
+
+.hdr-body{display:grid;grid-template-columns:1fr auto;gap:32px;align-items:end;}
+@media(max-width:680px){.hdr-body{grid-template-columns:1fr;}}
+.hdr-copy h1{font-family:'Manrope',sans-serif;font-size:clamp(22px,3.5vw,36px);font-weight:900;color:#fff;line-height:1.15;margin-bottom:10px;}
+.hdr-copy h1 em{color:var(--pink);font-style:normal;}
+.hdr-copy p{color:rgba(255,255,255,.65);font-size:14px;max-width:500px;margin-bottom:18px;}
+.hdr-badges{display:flex;gap:7px;flex-wrap:wrap;padding-bottom:32px;}
+.hbadge{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.8);font-size:11px;font-weight:500;padding:4px 11px;border-radius:20px;}
+.hbadge.green{background:rgba(29,158,117,.2);border-color:rgba(29,158,117,.4);color:#5DCAA5;}
+
+/* Proof strip */
+.proof{background:var(--navy-deep);border-top:1px solid rgba(255,255,255,.06);position:relative;}
+.proof::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--pink) 0%,var(--blue) 50%,var(--pink) 100%);opacity:.6;}
+.proof-inner{max-width:980px;margin:0 auto;padding:14px 24px;display:flex;gap:0;overflow-x:auto;}
+.proof-item{flex:1;min-width:110px;text-align:center;padding:0 12px;border-right:1px solid rgba(255,255,255,.08);}
+.proof-item:last-child{border:none;}
+.proof-num{font-family:'Manrope',sans-serif;font-size:18px;font-weight:800;color:#fff;}
+.proof-num em{color:var(--pink);font-style:normal;}
+.proof-lbl{font-size:10px;color:rgba(255,255,255,.45);margin-top:1px;white-space:nowrap;}
+
+/* ── MAIN ── */
+.main{max-width:980px;margin:0 auto;padding:24px 24px 60px;}
+
+/* Tabs */
+.tabs{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:4px;margin-bottom:20px;width:fit-content;box-shadow:var(--shadow);}
+.tab{font-family:'Inter',sans-serif;font-size:13px;font-weight:500;padding:7px 22px;border-radius:9px;border:none;cursor:pointer;background:transparent;color:var(--text2);transition:all .2s;}
+.tab.active{background:var(--navy);color:#fff;box-shadow:0 2px 8px rgba(25,32,113,.3);}
+
+/* Section label */
+.slbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.09em;margin-bottom:12px;}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px;box-shadow:var(--shadow);margin-bottom:14px;}
+
+/* Input grid */
+.igrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px;}
+.igrp{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;transition:border-color .18s;}
+.igrp:focus-within{border-color:var(--navy3);}
+.igrp label{display:block;font-size:11px;font-weight:500;color:var(--text2);margin-bottom:5px;}
+.igrp input[type=number]{width:100%;font-family:'Manrope',sans-serif;font-size:18px;font-weight:700;color:var(--navy);background:transparent;border:none;outline:none;padding:0;}
+.igrp .hint{font-size:10px;color:var(--text3);margin-top:3px;}
+
+/* Sliders */
+.sgrp{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;}
+.sgrp label{display:block;font-size:11px;font-weight:500;color:var(--text2);margin-bottom:7px;}
+.sval-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
+.sval{font-family:'Manrope',sans-serif;font-size:18px;font-weight:700;color:var(--navy);}
+.sbench{font-size:10px;color:var(--teal);font-weight:600;}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:2px;background:var(--border);outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--pink);border:3px solid #fff;box-shadow:0 1px 6px rgba(255,95,165,.45);cursor:pointer;}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--pink);border:3px solid #fff;box-shadow:0 1px 6px rgba(255,95,165,.45);cursor:pointer;}
+.sbounds{display:flex;justify-content:space-between;font-size:9px;color:var(--text3);margin-top:4px;}
+
+/* Plan grid */
+.pgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+@media(max-width:640px){.pgrid{grid-template-columns:repeat(3,1fr);}}
+.pcard{border:1.5px solid var(--border);border-radius:var(--rs);padding:12px 8px;text-align:center;position:relative;transition:all .2s;}
+.pcard.rec{border-color:var(--pink);background:#FFF4F9;box-shadow:0 0 0 3px rgba(255,95,165,.12);}
+.prec-badge{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--pink);color:#fff;font-size:9px;font-weight:700;padding:2px 9px;border-radius:10px;white-space:nowrap;letter-spacing:.04em;}
+.pname{font-size:10px;font-weight:600;color:var(--text2);margin-bottom:4px;}
+.pprice{font-family:'Manrope',sans-serif;font-size:13px;font-weight:800;}
+.pcap{font-size:9px;color:var(--text3);margin-top:2px;}
+
+/* Metric row */
+.mrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px;}
+.mc{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:13px 15px;}
+.mc .ml{font-size:10px;font-weight:600;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em;}
+.mc .mv{font-family:'Manrope',sans-serif;font-size:22px;font-weight:800;color:var(--text);}
+.mc .mv.g{color:var(--teal);}
+.mc .mv.r{color:var(--pink-dark);}
+.mc .mv.b{color:var(--blue);}
+
+/* Breakdown */
+.bdgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+@media(max-width:580px){.bdgrid{grid-template-columns:1fr;}}
+.bdc{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:16px;overflow:hidden;}
+.bdc-hd{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+.bdc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.brow{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border);}
+.brow:last-of-type{border:none;}
+.brow .bl{color:var(--text2);}
+.brow .bv{font-family:'Manrope',sans-serif;font-size:13px;font-weight:700;}
+.brow .bv.g{color:var(--teal);}
+.brow .bv.r{color:var(--pink-dark);}
+.brow.tot{background:var(--surface2);margin:8px -16px -16px;padding:10px 16px;border-top:1px solid var(--border);}
+.brow.tot .bl{font-weight:600;color:var(--text);}
+
+/* Bars */
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+.bar-lbl{width:145px;font-size:11px;color:var(--text2);flex-shrink:0;}
+.bar-trk{flex:1;height:8px;background:var(--bg);border-radius:4px;overflow:hidden;}
+.bar-fil{height:100%;border-radius:4px;transition:width .5s ease;}
+.bar-amt{width:95px;text-align:right;font-family:'Manrope',sans-serif;font-size:11px;font-weight:700;color:var(--text);}
+
+/* Plan features */
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;}
+.fitem{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:var(--text2);}
+.fchk{width:16px;height:16px;border-radius:50%;background:var(--teal-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.fchk svg{width:9px;height:9px;stroke:var(--teal);fill:none;stroke-width:2.5;}
+
+/* Social proof inside results */
+.proof2{background:linear-gradient(135deg,var(--navy-deep) 0%,var(--navy) 60%,var(--navy2) 100%);border-radius:var(--r);padding:20px 22px;margin-bottom:14px;position:relative;overflow:hidden;}
+.proof2::before{content:'';position:absolute;top:0;right:0;width:180px;height:180px;background:radial-gradient(circle,rgba(255,95,165,.2) 0%,transparent 70%);}
+.proof2::after{content:'';position:absolute;bottom:-40px;left:-20px;width:160px;height:160px;background:radial-gradient(circle,rgba(0,111,255,.2) 0%,transparent 70%);}
+.proof2-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:12px;position:relative;z-index:1;}
+.p2item{text-align:center;}
+.p2num{font-family:'Manrope',sans-serif;font-size:20px;font-weight:800;color:#fff;}
+.p2num em{color:var(--pink);font-style:normal;}
+.p2lbl{font-size:10px;color:rgba(255,255,255,.55);margin-top:2px;}
+
+/* CTA */
+.cta{background:linear-gradient(120deg,var(--navy-deep) 0%,var(--navy) 55%,var(--navy3) 100%);border-radius:var(--r);padding:24px;margin-top:14px;border:1px solid rgba(255,255,255,.06);position:relative;overflow:hidden;}
+.cta::before{content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(255,95,165,.3) 0%,transparent 60%);}
+.cta > *{position:relative;z-index:1;}
+.cta p{font-size:12px;color:rgba(255,255,255,.7);margin-bottom:14px;line-height:1.55;max-width:600px;}
+.ctarow{display:flex;gap:9px;flex-wrap:wrap;}
+.ctabtn{font-family:'Inter',sans-serif;font-size:12px;font-weight:500;padding:9px 18px;border-radius:var(--rs);cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;transition:all .2s;text-decoration:none;display:inline-block;}
+.ctabtn:hover{background:rgba(255,255,255,.16);}
+.ctabtn.primary{background:var(--pink);border-color:var(--pink);font-weight:600;box-shadow:0 4px 14px rgba(255,95,165,.4);}
+.ctabtn.primary:hover{background:var(--pink-dark);transform:translateY(-1px);}
+
+/* Nav btn */
+.navbtn{font-family:'Inter',sans-serif;font-size:13px;font-weight:600;padding:11px 30px;border-radius:var(--rs);border:none;cursor:pointer;background:var(--navy);color:#fff;box-shadow:0 4px 14px rgba(25,32,113,.3);transition:all .2s;margin-top:20px;}
+.navbtn:hover{background:var(--navy2);transform:translateY(-1px);box-shadow:0 6px 18px rgba(25,32,113,.4);}
+.navbtn.ghost{background:transparent;color:var(--text2);box-shadow:none;border:1px solid var(--border);margin-top:10px;}
+.navbtn.ghost:hover{background:var(--surface2);color:var(--text);transform:none;}
+
+/* Disclaimer */
+.disc{font-size:10px;color:var(--text3);line-height:1.6;margin-top:14px;}
+
+/* Footer */
+.footer{max-width:980px;margin:0 auto;padding:0 24px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.footer-logo{display:flex;align-items:center;gap:8px;}
+.footer p{font-size:11px;color:var(--text3);}
+
+@media(max-width:500px){.main{padding:20px 12px 40px;}.card{padding:14px;}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-deco"><span></span><span></span><span></span></div>
+  <div class="hdr-inner">
+    <div class="logo">
+      <img src="data:image/jpeg;base64,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" alt="FlyAkeed" style="height:44px;width:auto;display:block;" />
+    </div>
+    <div class="hdr-body">
+      <div class="hdr-copy">
+        <h1>Discover your<br/><em>ROI</em> with FlyAkeed</h1>
+        <p>Enter your company profile and see exactly how much time, money, and productivity your organization can recover by automating business travel.</p>
+        <div class="hdr-badges">
+          <span class="hbadge">Saudi Arabia & GCC</span>
+          <span class="hbadge">SAR Pricing</span>
+          <span class="hbadge">100% Saudi-Hosted Data</span>
+          <span class="hbadge green">40% Productivity Increase</span>
+          <span class="hbadge green">20% Travel Cost Reduction</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="proof">
+    <div class="proof-inner">
+      <div class="proof-item"><div class="proof-num">221<em>+</em></div><div class="proof-lbl">Enterprise Clients</div></div>
+      <div class="proof-item"><div class="proof-num">1.4<em>M+</em></div><div class="proof-lbl">Travel Requests</div></div>
+      <div class="proof-item"><div class="proof-num">98<em>%</em></div><div class="proof-lbl">CSAT Score</div></div>
+      <div class="proof-item"><div class="proof-num">92<em>%</em></div><div class="proof-lbl">Policy Compliance</div></div>
+      <div class="proof-item"><div class="proof-num">57<em>M+</em></div><div class="proof-lbl">SAR Cost Savings</div></div>
+      <div class="proof-item"><div class="proof-num">59<em>s</em></div><div class="proof-lbl">Avg. Support Response</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="tabs">
+    <button class="tab active" onclick="setV('inputs',this)">Company profile</button>
+    <button class="tab" onclick="setV('results',this)">ROI & plan</button>
+  </div>
+
+  <!-- INPUTS -->
+  <div id="vi">
+    <div class="card">
+      <div class="slbl">Company details</div>
+      <div class="igrid">
+        <div class="igrp">
+          <label>Number of travelers</label>
+          <input type="number" id="travelers" value="200" min="1" oninput="calc()"/>
+          <div class="hint">employees who travel for work</div>
+        </div>
+        <div class="igrp">
+          <label>Monthly business trips</label>
+          <input type="number" id="trips" value="100" min="1" oninput="calc()"/>
+          <div class="hint">total trips per month</div>
+        </div>
+        <div class="igrp">
+          <label>Avg. trip cost</label>
+          <input type="number" id="tripcost" value="3500" min="100" oninput="calc()"/>
+          <div class="hint">SAR per trip (flights + hotel)</div>
+        </div>
+        <div class="igrp">
+          <label>Avg. employee hourly rate</label>
+          <input type="number" id="rate" value="120" min="20" oninput="calc()"/>
+          <div class="hint">SAR per hour (blended)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="slbl">Current process benchmarks — adjust to match your reality</div>
+      <div class="igrid">
+        <div class="sgrp">
+          <label>Hours spent booking per trip (today)</label>
+          <div class="sval-row">
+            <span class="sval" id="bookHV">3h</span>
+            <span class="sbench">→ 27 min with FlyAkeed</span>
+          </div>
+          <input type="range" id="bookH" min="0.5" max="6" step="0.5" value="3" oninput="sy('bookH','bookHV');calc()"/>
+          <div class="sbounds"><span>0.5h</span><span>6h</span></div>
+        </div>
+        <div class="sgrp">
+          <label>Hours on expense reports per trip</label>
+          <div class="sval-row">
+            <span class="sval" id="expHV">1.5h</span>
+            <span class="sbench">→ 70% reduction</span>
+          </div>
+          <input type="range" id="expH" min="0.25" max="4" step="0.25" value="1.5" oninput="sy('expH','expHV');calc()"/>
+          <div class="sbounds"><span>0.25h</span><span>4h</span></div>
+        </div>
+        <div class="sgrp">
+          <label>Policy non-compliance rate</label>
+          <div class="sval-row">
+            <span class="sval" id="ncompV">18%</span>
+            <span class="sbench">→ 92% compliance achieved</span>
+          </div>
+          <input type="range" id="ncomp" min="5" max="40" step="1" value="18" oninput="sy('ncomp','ncompV','%');calc()"/>
+          <div class="sbounds"><span>5%</span><span>40%</span></div>
+        </div>
+        <div class="sgrp">
+          <label>Finance reconciliation hrs / month</label>
+          <div class="sval-row">
+            <span class="sval" id="reconV">30h</span>
+            <span class="sbench">→ 75% reduction</span>
+          </div>
+          <input type="range" id="recon" min="5" max="80" step="5" value="30" oninput="sy('recon','reconV','h');calc()"/>
+          <div class="sbounds"><span>5h</span><span>80h</span></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="navbtn" onclick="setV('results',document.querySelectorAll('.tab')[1])">Calculate my ROI →</button>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="vr" style="display:none;">
+
+    <div class="card">
+      <div class="slbl">Recommended plan based on your traveler count</div>
+      <div class="pgrid" id="pgrid"></div>
+      <div id="paddons" style="font-size:10px;color:var(--text3);margin-top:10px;"></div>
+    </div>
+
+    <div class="mrow">
+      <div class="mc"><div class="ml">Gross savings / yr</div><div class="mv g" id="r-gross">—</div></div>
+      <div class="mc"><div class="ml">FlyAkeed cost / yr</div><div class="mv r" id="r-cost">—</div></div>
+      <div class="mc"><div class="ml">Net savings / yr</div><div class="mv g" id="r-net">—</div></div>
+      <div class="mc"><div class="ml">ROI</div><div class="mv g" id="r-roi">—</div></div>
+      <div class="mc"><div class="ml">Hours freed / yr</div><div class="mv b" id="r-hrs">—</div></div>
+      <div class="mc"><div class="ml">Payback period</div><div class="mv" id="r-pay">—</div></div>
+    </div>
+
+    <div class="bdgrid">
+      <div class="bdc">
+        <div class="bdc-hd"><span class="bdc-dot" style="background:var(--teal)"></span><span style="color:var(--teal)">Direct savings</span><span style="color:var(--text3);font-weight:400;font-size:9px;">(cash recovered)</span></div>
+        <div class="brow"><span class="bl">Supplier & corporate discounts (~8%)</span><span class="bv g" id="b-disc">—</span></div>
+        <div class="brow"><span class="bl">Policy leakage recovered (60% of violations)</span><span class="bv g" id="b-pol">—</span></div>
+        <div class="brow" style="border-top:1px solid var(--border2);margin-top:4px;padding-top:8px;"><span class="bl">Gross direct savings</span><span class="bv g" id="b-dirgross">—</span></div>
+        <div class="brow"><span class="bl">FlyAkeed subscription cost</span><span class="bv r" id="b-sub">—</span></div>
+        <div class="brow tot"><span class="bl">Net direct savings</span><span class="bv g" id="b-dirnet">—</span></div>
+      </div>
+      <div class="bdc">
+        <div class="bdc-hd"><span class="bdc-dot" style="background:var(--blue)"></span><span style="color:var(--blue)">Indirect savings</span><span style="color:var(--text3);font-weight:400;font-size:9px;">(productivity value)</span></div>
+        <div class="brow"><span class="bl">Booking time saved (85% faster)</span><span class="bv g" id="b-book">—</span></div>
+        <div class="brow"><span class="bl">Expense reporting (70% reduction)</span><span class="bv g" id="b-exp">—</span></div>
+        <div class="brow"><span class="bl">Finance reconciliation (75% cut)</span><span class="bv g" id="b-rec">—</span></div>
+        <div class="brow tot"><span class="bl">Total productivity value</span><span class="bv g" id="b-indnet">—</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="slbl">Savings breakdown — SAR per year</div>
+      <div id="bars"></div>
+    </div>
+
+    <div class="proof2">
+      <div class="slbl" style="color:rgba(255,255,255,.4);margin-bottom:14px;">What FlyAkeed clients collectively achieved</div>
+      <div class="proof2-grid">
+        <div class="p2item"><div class="p2num">92<em>%</em></div><div class="p2lbl">Policy compliance rate</div></div>
+        <div class="p2item"><div class="p2num">SAR 57<em>M</em></div><div class="p2lbl">Traceable cost savings</div></div>
+        <div class="p2item"><div class="p2num">1.75<em>M</em></div><div class="p2lbl">Emails eliminated</div></div>
+        <div class="p2item"><div class="p2num">98<em>%</em></div><div class="p2lbl">Customer satisfaction</div></div>
+        <div class="p2item"><div class="p2num">NPS 95</div><div class="p2lbl">12-month NPS score</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="slbl">What's included in your recommended plan</div>
+      <div id="pfeatures"></div>
+    </div>
+
+    <div class="cta">
+      <p>These figures are based on GCC corporate travel benchmarks and real FlyAkeed client outcomes. Want a custom analysis or to present this to your leadership team?</p>
+      <div class="ctarow">
+        <a href="https://business.flyakeed.com" target="_blank" class="ctabtn primary">Request a demo →</a>
+        <button class="ctabtn" onclick="window.print()">Save as PDF</button>
+      </div>
+    </div>
+
+    <div class="disc">* Estimates based on GCC corporate travel benchmarks. FlyAkeed reduces booking time by 85% (avg. from 4.2 hrs to under 30 min), expense reporting by 70%, and finance reconciliation by 75%. Supplier discount assumed at 8% of annual travel spend. Policy leakage recovery at 60% of non-compliant spend. Actual results may vary. Source: FlyAkeed internal client data & GCC travel industry research 2025.</div>
+
+    <button class="navbtn ghost" onclick="setV('inputs',document.querySelectorAll('.tab')[0])">← Adjust inputs</button>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-logo">
+    <img src="data:image/jpeg;base64,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" alt="FlyAkeed" style="height:28px;width:auto;display:block;" />
+  </div>
+  <p>FlyAkeed.com &nbsp;|&nbsp; info@FlyAkeed.com &nbsp;|&nbsp; 920000091 &nbsp;|&nbsp; Riyadh, Saudi Arabia</p>
+</div>
+
+<script>
+const PLANS=[
+  {name:'Starter',price:7000,travelers:20,admins:1,policies:1,extraT:300,integrations:'Not included',reporting:'Basic',support:'Self onboarding',color:'#8A90B5'},
+  {name:'Growth',price:18000,travelers:80,admins:2,policies:2,extraT:240,integrations:'Add-on',reporting:'Basic',support:'Online onboarding',color:'#006FFF'},
+  {name:'Professional',price:60000,travelers:300,admins:4,policies:4,extraT:200,integrations:'1 module included',reporting:'Advanced analytics',support:'Online + Employee trainings',color:'#1D9E75'},
+  {name:'Professional+',price:180000,travelers:800,admins:8,policies:8,extraT:150,integrations:'All modules',reporting:'Custom BI',support:'Custom onboarding',color:'#FF5FA5'},
+  {name:'Enterprise',price:null,travelers:Infinity,admins:null,policies:null,extraT:null,integrations:'Full suite + customization',reporting:'Enterprise BI',support:'Custom + Ambassador',color:'#192071'},
+];
+
+function sy(id,outId,suf){
+  const v=parseFloat(document.getElementById(id).value);
+  document.getElementById(outId).textContent=v+(suf||'h');
+}
+function setV(v,btn){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('vi').style.display=v==='inputs'?'':'none';
+  document.getElementById('vr').style.display=v==='results'?'':'none';
+  if(v==='results')calc();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function getPlan(t){
+  for(let i=0;i<PLANS.length;i++){
+    const p=PLANS[i];
+    if(t<=p.travelers)return{plan:p,idx:i,extras:0,total:p.price};
+    if(p.extraT&&i<PLANS.length-2){
+      const next=PLANS[i+1];
+      const extras=t-p.travelers;
+      const withExtras=p.price+extras*p.extraT;
+      if(withExtras<next.price)return{plan:p,idx:i,extras,total:withExtras};
+    }
+  }
+  return{plan:PLANS[PLANS.length-1],idx:PLANS.length-1,extras:0,total:null};
+}
+function fmtK(n){
+  if(n==null)return'Custom';
+  const a=Math.abs(n),s=n<0?'−':'';
+  if(a>=1000000)return s+'SAR '+(a/1000000).toFixed(1)+'M';
+  if(a>=1000)return s+'SAR '+Math.round(a/1000).toLocaleString()+'K';
+  return s+'SAR '+Math.round(a).toLocaleString();
+}
+function calc(){
+  const t=parseInt(document.getElementById('travelers').value)||200;
+  const trM=parseInt(document.getElementById('trips').value)||100;
+  const tc=parseFloat(document.getElementById('tripcost').value)||3500;
+  const hr=parseFloat(document.getElementById('rate').value)||120;
+  const bH=parseFloat(document.getElementById('bookH').value)||3;
+  const eH=parseFloat(document.getElementById('expH').value)||1.5;
+  const nc=parseFloat(document.getElementById('ncomp').value)/100||0.18;
+  const rH=parseFloat(document.getElementById('recon').value)||30;
+
+  const trY=trM*12,spend=trY*tc;
+  const bookSav=bH*.85*trY*hr;
+  const expSav=eH*.70*trY*hr;
+  const reconSav=rH*12*.75*hr;
+  const polSav=spend*nc*.60;
+  const discSav=spend*.08;
+  const dirGross=polSav+discSav;
+  const indir=bookSav+expSav+reconSav;
+  const gross=dirGross+indir;
+
+  const{plan,idx,extras,total}=getPlan(t);
+  const net=total?gross-total:null;
+  const roi=total?((gross-total)/total*100):null;
+  const payM=total?(total/gross*12):null;
+  const hrs=Math.round((bH*.85+eH*.70)*trY+rH*12*.75);
+
+  document.getElementById('r-gross').textContent=fmtK(gross);
+  document.getElementById('r-cost').textContent=total?fmtK(total):'Custom';
+  document.getElementById('r-net').textContent=net!=null?fmtK(net):'—';
+  document.getElementById('r-roi').textContent=roi!=null?Math.round(roi)+'%':'—';
+  document.getElementById('r-hrs').textContent=hrs.toLocaleString()+' hrs';
+  document.getElementById('r-pay').textContent=payM?(payM<1?'< 1 month':Math.round(payM)+' months'):'—';
+
+  document.getElementById('b-disc').textContent=fmtK(discSav);
+  document.getElementById('b-pol').textContent=fmtK(polSav);
+  document.getElementById('b-dirgross').textContent=fmtK(dirGross);
+  document.getElementById('b-sub').textContent=total?'− '+fmtK(total):'Custom';
+  document.getElementById('b-dirnet').textContent=total?fmtK(dirGross-total):'—';
+  document.getElementById('b-book').textContent=fmtK(bookSav);
+  document.getElementById('b-exp').textContent=fmtK(expSav);
+  document.getElementById('b-rec').textContent=fmtK(reconSav);
+  document.getElementById('b-indnet').textContent=fmtK(indir);
+
+  const items=[
+    {label:'Supplier discounts',val:discSav,color:'#1D9E75'},
+    {label:'Policy compliance',val:polSav,color:'#15B585'},
+    {label:'Booking time',val:bookSav,color:'#FF5FA5'},
+    {label:'Expense reporting',val:expSav,color:'#006FFF'},
+    {label:'Finance reconciliation',val:reconSav,color:'#3389FF'},
+  ].sort((a,b)=>b.val-a.val);
+  const mx=Math.max(...items.map(i=>i.val));
+  document.getElementById('bars').innerHTML=items.map(i=>`
+    <div class="bar-row">
+      <span class="bar-lbl">${i.label}</span>
+      <div class="bar-trk"><div class="bar-fil" style="width:${Math.round(i.val/mx*100)}%;background:${i.color};"></div></div>
+      <span class="bar-amt">${fmtK(i.val)}</span>
+    </div>`).join('');
+
+  document.getElementById('pgrid').innerHTML=PLANS.map((p,i)=>{
+    const isR=i===idx;
+    return`<div class="pcard${isR?' rec':''}">
+      ${isR?'<div class="prec-badge">Recommended</div>':''}
+      <div class="pname">${p.name}</div>
+      <div class="pprice" style="color:${p.color}">${p.price?'SAR '+p.price.toLocaleString():'Custom'}</div>
+      <div class="pcap">${p.travelers===Infinity?'Custom':p.travelers+' travelers'}</div>
+    </div>`;
+  }).join('');
+
+  const add=extras>0&&plan.price?`+ ${extras} extra travelers × SAR ${plan.extraT.toLocaleString()} = SAR ${(extras*plan.extraT).toLocaleString()} add-on, giving a total of SAR ${total.toLocaleString()} / year.`:'';
+  document.getElementById('paddons').textContent=add;
+
+  const feats=[
+    `${plan.travelers===Infinity?'Custom':plan.travelers} travelers included`,
+    `${plan.admins||'Custom'} admin accounts`,
+    `${plan.policies||'Custom'} travel policies`,
+    `Integrations: ${plan.integrations}`,
+    `Reporting: ${plan.reporting}`,
+    `Support: ${plan.support}`,
+    'Policy compliance engine',
+    'Real-time spend dashboards',
+    'ZATCA & VAT compliance',
+    'Saudi-hosted data sovereignty',
+  ].filter(Boolean);
+  document.getElementById('pfeatures').innerHTML=`<div class="fgrid">${feats.map(f=>`
+    <div class="fitem">
+      <div class="fchk"><svg viewBox="0 0 10 10"><polyline points="2,5 4,8 8,3"/></svg></div>
+      <span>${f}</span>
+    </div>`).join('')}</div>`;
+}
+calc();
+</script>
+</body>
+</html>
